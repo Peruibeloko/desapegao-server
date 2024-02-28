@@ -1,5 +1,14 @@
 {
   "imports": {
-    "deps": "./deps.ts"
+    "deps": "./deps.ts",
+    "types/": "./typings/",
+    "helpers": "./helpers.ts",
+    "service/": "./services/"
+  },
+  "compilerOptions": {
+    "lib": ["deno.unstable", "dom"]
+  },
+  "tasks": {
+    "dev": "deno run -A --unstable main.ts"
   }
 }
