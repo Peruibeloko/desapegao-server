@@ -12,8 +12,8 @@ router
 
     return c.json(null, result ? 200 : 500);
   })
-  .get(c => {
-    const result = getListings();
+  .get(async c => {
+    const result = await getListings();
     return c.json(result);
   });
 
