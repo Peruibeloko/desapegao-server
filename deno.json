@@ -1,9 +1,9 @@
 {
   "tasks": {
-    "start": "deno run --allow-net --unstable --watch=/ main.ts"
+    "start": "deno run --allow-net --unstable-kv --watch=src/ main.ts"
   },
   "imports": {
-    "@/": "./",
+    "@/": "./src/",
     "hono/": "https://deno.land/x/hono@v4.1.4/",
     "zod": "https://deno.land/x/zod@v3.22.4/index.ts"
   },
