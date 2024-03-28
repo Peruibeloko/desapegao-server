@@ -14,10 +14,12 @@ const listing = new Hono<State>();
 
 listing.post('/', validator('json', using(ListingSchema)), async c => {
   const listing = c.req.valid('json');
-  const conn = await c.get('connPool').getConnection(3);
+  const pool = c.get('connPool');
+  const [connKey, conn] = await pool.getConnection(3);
   if (conn === null) return c.text('No database connections available, please wait and try again', 503);
 
   const success = await nq(listing, conn);
+  pool.thanks(connKey);
 
   return c.text('', success ? 200 : 500);
 });

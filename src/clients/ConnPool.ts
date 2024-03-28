@@ -54,11 +54,11 @@ export class ConnPool {
       for (const key in this.#pool) {
         if (!this.#pool[key].available) continue;
         this.#pool[key].available = false;
-        return this.#pool[key].conn;
+        return [key, this.#pool[key].conn] as [key: string, conn: Deno.Kv];
       }
       await sleep(1000);
     }
-    return null;
+    return [null, null] as [key: null, conn: null];
   }
 
   public thanks(key: string) {
