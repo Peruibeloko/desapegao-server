@@ -1,5 +1,5 @@
 import { Hono, validator } from 'hono/mod.ts';
-import using from '@/middlewares/validate.ts';
+import { usingSchema } from "@/middlewares/usingSchema.ts";
 import { ListingSchema } from '@/models/Listing.ts';
 import { ConnPool } from '@/clients/ConnPool.ts';
 
@@ -11,7 +11,7 @@ interface State {
 
 const callback = new Hono<State>();
 
-callback.post('/', validator('json', using(ListingSchema)), async c => {
+callback.post('/', validator('json', usingSchema(ListingSchema)), async c => {
   // TODO implementar lógica de callback do webhook da Pagar.me
 });
 

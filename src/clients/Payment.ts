@@ -1,11 +1,9 @@
 import { Pix } from '@/models/Pix.ts';
 
-export async function createPix(ammount: number) {
-  const pixKey = Deno.env.get('CHAVE_PIX');
-  const pixKeyType = Deno.env.get('CHAVE_PIX_TIPO');
-  const txid = crypto.randomUUID();
+type PixKeyType = 'cpf' | 'cnpj' | 'email' | 'telefone' | 'aleatorio';
 
-  if (!pixKey || !pixKeyType) return;
+export async function createPix(ammount: number, pixKey: string, pixKeyType: PixKeyType) {
+  const txid = crypto.randomUUID();
 
   const params = new URLSearchParams();
   params.append('tipo', pixKeyType);
@@ -13,7 +11,7 @@ export async function createPix(ammount: number) {
   params.append('valor', formatCurrency(ammount));
   params.append('info', 'Dezapegão');
   params.append('txid', txid);
-  
+
   const pixData = await fetch('https://pix.ae/', {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'

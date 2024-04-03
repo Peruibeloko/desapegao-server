@@ -1,5 +1,19 @@
 {
   "version": "3",
+  "packages": {
+    "specifiers": {
+      "npm:@types/node": "npm:@types/node@18.16.19"
+    },
+    "npm": {
+      "@types/node@18.16.19": {
+        "integrity": "sha512-IXl7o+R9iti9eBW4Wg2hx1xQDig183jj7YLn8F7udNceyfkbn1ZxmzZXuak20gR40D7pIkIY1kYGx5VIGbaHKA==",
+        "dependencies": {}
+      }
+    }
+  },
+  "redirects": {
+    "https://deno.land/x/ftpc/mod.ts": "https://deno.land/x/ftpc@v3.1.0/mod.ts"
+  },
   "remote": {
     "https://deno.land/x/hono@v4.1.4/adapter/deno/serve-static.ts": "62b57d461ecebbc7b98809c4fc2a8358f0828d6e89cdc6841054e5bb3828fc80",
     "https://deno.land/x/hono@v4.1.4/client/client.ts": "b9d07d47a7b23f007fb2ea29a3185885e85a963a63b0f921f93ae2981ee29cda",
