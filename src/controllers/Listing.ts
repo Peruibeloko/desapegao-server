@@ -47,7 +47,9 @@ listing.post('/ftp', validator('json', usingSchema(ListingSchema)), usingEnv(ENV
   const fileName = `${listing.sellerName.toLowerCase()}_${listing.sellerPhone.replaceAll(/^\D$/g, '')}.${extension}`;
   const imageData = decodeBase64(b64ImageData);
 
+  await ftp.connect()
   await ftp.upload(fileName, imageData);
+  await ftp.close()
 
   return c.text('', 200);
 });
