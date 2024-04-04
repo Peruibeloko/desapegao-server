@@ -44,7 +44,7 @@ listing.post('/ftp', validator('json', usingSchema(ListingSchema)), usingEnv(ENV
   const [, b64ImageData] = b64WithHeader.split(',');
   const [, extension] = fileType.split('/');
 
-  const fileName = `${listing.sellerName.toLowerCase()}_${listing.sellerPhone.replaceAll(/^\D$/, '')}.${extension}`;
+  const fileName = `${listing.sellerName.toLowerCase()}_${listing.sellerPhone.replaceAll(/^\D$/g, '')}.${extension}`;
   const imageData = decodeBase64(b64ImageData);
 
   await ftp.upload(fileName, imageData);
