@@ -37,7 +37,7 @@ listing.post('/ftp', validator('json', usingSchema(ListingSchema)), usingEnv(ENV
     user: env.FTP_USER,
     pass: env.FTP_PASS,
     port: +env.FTP_PORT,
-    mode: 'active'
+    mode: 'passive'
   });
 
   const [fileType, b64WithHeader] = listing.productImage.split(';');
