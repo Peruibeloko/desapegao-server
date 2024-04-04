@@ -3,7 +3,7 @@ import { cors } from 'hono/middleware.ts';
 import listingRouter from '@/controllers/Listing.ts';
 import callbackRouter from '@/controllers/Callback.ts';
 import { ConnPool } from '@/clients/ConnPool.ts';
-import { dq } from '@/clients/Q.ts';
+// import { dq } from '@/clients/Q.ts';
 
 interface State {
   Variables: {
@@ -27,10 +27,10 @@ app.route('/listing', listingRouter);
 app.route('/callback', callbackRouter);
 
 Deno.serve(app.fetch);
-Deno.cron('Queue consumer', { minute: { every: 15 } }, async () => {
-  const conn = await Deno.openKv();
-  if (!conn) throw new Error("Can't connect to the database");
+// Deno.cron('Queue consumer', { minute: { every: 15 } }, async () => {
+//   const conn = await Deno.openKv();
+//   if (!conn) throw new Error("Can't connect to the database");
 
-  const listing = dq(conn);
-  // TODO enviar para grupos
-});
+//   const listing = dq(conn);
+//   // TODO enviar para grupos
+// });
