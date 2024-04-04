@@ -9,5 +9,5 @@ export const ListingSchema = z.object({
   location: z.string(),
   sellerName: z.string(),
   sellerPhone: z.string().length(11).regex(/^\d+$/),
-  groups: z.number().int().gt(0)
+  // groups: z.number().int().gt(0)
 });
