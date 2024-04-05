@@ -16,6 +16,11 @@ const dbPool = await ConnPool.init(10);
 
 app.use('*', cors());
 
+app.use('*', async (c, next) => {
+  console.debug(c.req.method, c.req.path, await c.req.json());
+  await next();
+});
+
 app.use(async (c, next) => {
   c.set('connPool', dbPool);
   await next();

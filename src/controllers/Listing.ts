@@ -33,23 +33,34 @@ listing.post('/', validator('json', usingSchema(ListingSchema)), async c => {
 listing.post('/ftp', validator('json', usingSchema(ListingSchema)), usingEnv(ENV_VARS), async c => {
   const listing = c.req.valid('json');
   const env = c.get('env');
-  const ftp = new FTPClient(env.FTP_URL, {
-    user: env.FTP_USER,
-    pass: env.FTP_PASS,
-    port: +env.FTP_PORT,
-    mode: 'passive'
-  });
 
-  const [fileType, b64WithHeader] = listing.productImage.split(';');
-  const [, b64ImageData] = b64WithHeader.split(',');
-  const [, extension] = fileType.split('/');
+  console.info(`Connecting to ${env.FTP_USER}@${env.FTP_URL}:${env.FTP_PORT}`);
 
-  const fileName = `${listing.sellerName.toLowerCase()}_${listing.sellerPhone.replaceAll(/^\D$/g, '')}.${extension}`;
-  const imageData = decodeBase64(b64ImageData);
+  {
+    using ftp = new FTPClient(env.FTP_URL, {
+      user: env.FTP_USER,
+      pass: env.FTP_PASS,
+      port: +env.FTP_PORT,
+      mode: 'passive'
+    });
 
-  await ftp.connect()
-  await ftp.upload(fileName, imageData);
-  await ftp.close()
+    
+    const [fileType, b64WithHeader] = listing.productImage.split(';');
+    const [, b64ImageData] = b64WithHeader.split(',');
+    const [, extension] = fileType.split('/');
+    
+    const fileName = `${listing.sellerName.toLowerCase()}_${listing.sellerPhone.replaceAll(/^\D$/g, '')}.${extension}`;
+    const imageData = decodeBase64(b64ImageData);
+    
+    console.info(`Connecting to ${env.FTP_USER}@${env.FTP_URL}:${env.FTP_PORT}`);
+    try {  
+      await ftp.connect();
+    } catch (e) {
+      console.error('Error while connecting', e);  
+    }
+    console.info('Uploading', fileName);
+    await ftp.upload(fileName, imageData);
+  }
 
   return c.text('', 200);
 });
