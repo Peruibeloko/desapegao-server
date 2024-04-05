@@ -5,7 +5,7 @@ export const ListingSchema = z.object({
   productImage: z.string(),
   productName: z.string(),
   quality: z.enum(['novo', 'semiNovo', 'usadoBoaCondicao', 'usadoMarcasUso', 'usadoFaltaPartes', 'usadoQuebrado']),
-  value: z.number().nonnegative(),
+  value: z.string().regex(/^\d+$/),
   location: z.string(),
   sellerName: z.string(),
   sellerPhone: z.string().length(11).regex(/^\d+$/),
