@@ -34,8 +34,6 @@ listing.post('/ftp', validator('json', usingSchema(ListingSchema)), usingEnv(ENV
   const listing = c.req.valid('json');
   const env = c.get('env');
 
-  console.info(`Connecting to ${env.FTP_USER}@${env.FTP_URL}:${env.FTP_PORT}`);
-
   {
     using ftp = new FTPClient(env.FTP_URL, {
       user: env.FTP_USER,
