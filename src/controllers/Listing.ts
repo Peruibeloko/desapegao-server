@@ -41,9 +41,8 @@ listing.post('/ftp', validator('json', usingSchema(ListingSchema)), usingEnv(ENV
       port: +env.FTP_PORT,
       mode: 'passive'
     });
-
     
-    const [fileType, b64WithHeader] = listing.productImage.split(';');
+    const [fileType, b64WithHeader] = listing.listingImage.split(';');
     const [, b64ImageData] = b64WithHeader.split(',');
     const [, extension] = fileType.split('/');
     
