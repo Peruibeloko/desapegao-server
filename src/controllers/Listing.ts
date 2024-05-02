@@ -45,8 +45,11 @@ listing.post('/ftp', validator('json', usingSchema(ListingSchema)), usingEnv(ENV
     const [fileType, b64WithHeader] = listing.listingImage.split(';');
     const [, b64ImageData] = b64WithHeader.split(',');
     const [, extension] = fileType.split('/');
+
+    const sellerNameFile = listing.sellerName.toLowerCase()
+    const sellerPhoneFile = listing.sellerPhone.replaceAll(/^\D$/g, '')
     
-    const fileName = `${listing.sellerName.toLowerCase()}_${listing.sellerPhone.replaceAll(/^\D$/g, '')}.${extension}`;
+    const fileName = `${sellerPhoneFile}_${sellerNameFile}.${extension}`;
     const imageData = decodeBase64(b64ImageData);
     
     console.info(`Connecting to ${env.FTP_USER}@${env.FTP_URL}:${env.FTP_PORT}`);
