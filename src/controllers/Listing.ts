@@ -3,9 +3,9 @@ import { nq } from '@/clients/Q.ts';
 import { usingEnv } from '@/middlewares/checkEnv.ts';
 import { usingSchema } from '@/middlewares/usingSchema.ts';
 import { ListingSchema } from '@/models/Listing.ts';
-import { FTPClient } from 'ftp';
+import { uploadFTP } from '@/services/Listing.ts';
+
 import { Hono, validator } from 'hono/mod.ts';
-import { decodeBase64 } from 'std/encoding/base64.ts';
 
 const ENV_VARS = ['FTP_URL', 'FTP_PORT', 'FTP_USER', 'FTP_PASS'] as const;
 
@@ -34,29 +34,13 @@ listing.post('/ftp', validator('json', usingSchema(ListingSchema)), usingEnv(ENV
   const listing = c.req.valid('json');
   const env = c.get('env');
 
-  {
-    using ftp = new FTPClient(env.FTP_URL, {
-      user: env.FTP_USER,
-      pass: env.FTP_PASS,
-      port: +env.FTP_PORT,
-      mode: 'passive'
-    });
-    
-    const [fileType, b64WithHeader] = listing.listingImage.split(';');
-    const [, b64ImageData] = b64WithHeader.split(',');
-    const [, extension] = fileType.split('/');
-    
-    const fileName = `${listing.sellerName.toLowerCase()}_${listing.sellerPhone.replaceAll(/^\D$/g, '')}.${extension}`;
-    const imageData = decodeBase64(b64ImageData);
-    
-    console.info(`Connecting to ${env.FTP_USER}@${env.FTP_URL}:${env.FTP_PORT}`);
-    try {  
-      await ftp.connect();
-    } catch (e) {
-      console.error('Error while connecting', e);  
-    }
-    console.info('Uploading', fileName);
-    await ftp.upload(fileName, imageData);
+  const ftp = { url: env.FTP_URL, port: +env.FTP_PORT, user: env.FTP_USER, pass: env.FTP_PASS };
+
+  try {
+    await uploadFTP(ftp, listing);
+  } catch (e) {
+    console.error('Error while connecting', e);
+    return c.text('Error connecting to FTP', 500);
   }
 
   return c.text('', 200);

@@ -1,35 +1,28 @@
-import { Pix } from '@/models/Pix.ts';
+export async function createPix(ammount: number, email: string, cpf: string) {
+  const authKey = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
 
-type PixKeyType = 'cpf' | 'cnpj' | 'email' | 'telefone' | 'aleatorio';
-
-export async function createPix(ammount: number, pixKey: string, pixKeyType: PixKeyType) {
-  const txid = crypto.randomUUID();
-
-  const params = new URLSearchParams();
-  params.append('tipo', pixKeyType);
-  params.append('chave', pixKey);
-  params.append('valor', formatCurrency(ammount));
-  params.append('info', 'Dezapegão');
-  params.append('txid', txid);
-
-  const pixData = await fetch('https://pix.ae/', {
+  const response = await fetch('https://api.mercadopago.com/v1/payments', {
+    method: 'POST',
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': crypto.randomUUID(),
+      Authorization: `Bearer ${authKey}`
     },
-    body: params,
-    method: 'POST'
-  }).then(res => res.json() as Promise<Pix>);
-
-  return {
-    ...pixData,
-    txid
-  };
-}
-
-export async function checkStatus(txid: string) {
-  // TODO vai precisar de api mesmo
-}
-
-function formatCurrency(ammount: number) {
-  return `R$ ${ammount.toFixed(2).replace('.', ',')}`;
+    body: JSON.stringify({
+      description: 'Anúncio Desapegão',
+      installments: 1,
+      payment_method_id: 'Pix',
+      notification_url: 'https://desapegao.deno.dev/callback',
+      payer: {
+        entity_type: 'individual',
+        type: 'guest',
+        email,
+        identification: {
+          type: 'CPF',
+          number: cpf
+        }
+      },
+      transaction_amount: ammount
+    })
+  });
 }
