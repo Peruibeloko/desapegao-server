@@ -21,7 +21,10 @@ export async function uploadFTP({url, port, user, pass}: FTPConnection , listing
     const [, b64ImageData] = b64WithHeader.split(',');
     const [, extension] = fileType.split('/');
     
-    const fileName = `${listing.sellerName.toLowerCase()}_${listing.sellerPhone.replaceAll(/^\D$/g, '')}.${extension}`;
+    const sellerNameFile = listing.sellerName.toLowerCase()
+    const sellerPhoneFile = listing.sellerPhone.replaceAll(/^\D$/g, '')
+    
+    const fileName = `${sellerPhoneFile}_${sellerNameFile}.${extension}`;
     const imageData = decodeBase64(b64ImageData);
     
     console.info(`Connecting to ${user}@${url}:${port}`);
