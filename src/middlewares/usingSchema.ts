@@ -8,14 +8,10 @@ export const usingSchema: ValidationMiddleware = schema => (body, c) => {
   const reqId = c.get('reqId');
   console.log(`[${reqId}]`, 'Parsing payload');
 
-  const override = {
-    name: 'f,dkrjnfgkdj'
-  }
-
-  const result = schema.safeParse(override);
+  const result = schema.safeParse(body);
 
   if (!result.success) {
-    console.log(`[${reqId}]`, 'Invalid payload', formatError(result.error));
+    console.error(`[${reqId}]`, 'Invalid payload', formatError(result.error));
     return c.json({ reqId, ...formatError(result.error) }, 400);
   }
 
