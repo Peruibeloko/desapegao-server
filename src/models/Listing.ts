@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { ZodError, z } from 'zod';
 
 export type Listing = z.infer<typeof ListingSchema>;
 export const ListingSchema = z.object({
@@ -8,6 +8,16 @@ export const ListingSchema = z.object({
   value: z.string().regex(/^\d+$/),
   location: z.string(),
   sellerName: z.string(),
-  sellerPhone: z.string().length(11).regex(/^\d+$/),
+  sellerPhone: z.string().length(11).regex(/^\d+$/)
   // groups: z.number().int().gt(0)
 });
+
+export function formatError(error: ZodError) {
+  return error.issues.reduce(
+    (result, el) => ({
+      ...result,
+      [el.path.join('.')]: el.message
+    }),
+    {}
+  );
+}

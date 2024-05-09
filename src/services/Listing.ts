@@ -9,7 +9,7 @@ interface FTPConnection {
   pass: string;
 }
 
-export async function uploadFTP({url, port, user, pass}: FTPConnection , listing: Listing) {
+export async function uploadFTP({url, port, user, pass}: FTPConnection , listing: Listing, reqId: string) {
     using ftp = new FTPClient(url, {
       user,
       pass,
@@ -27,10 +27,10 @@ export async function uploadFTP({url, port, user, pass}: FTPConnection , listing
     const fileName = `${sellerPhoneFile}_${sellerNameFile}.${extension}`;
     const imageData = decodeBase64(b64ImageData);
     
-    console.info(`Connecting to ${user}@${url}:${port}`);
+    console.log(`[${reqId}]`, `Connecting to ${user}@${url}:${port}`);
     await ftp.connect();
     
-    console.info('Uploading', fileName);
+    console.log(`[${reqId}]`, 'Uploading', fileName);
     await ftp.upload(fileName, imageData);
 }
 

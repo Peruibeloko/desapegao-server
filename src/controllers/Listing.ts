@@ -12,6 +12,7 @@ const ENV_VARS = ['FTP_URL', 'FTP_PORT', 'FTP_USER', 'FTP_PASS'] as const;
 interface State {
   Variables: {
     connPool: ConnPool;
+    reqId: string;
     env: Record<(typeof ENV_VARS)[number], string>;
   };
 }
@@ -33,14 +34,15 @@ listing.post('/', validator('json', usingSchema(ListingSchema)), async c => {
 listing.post('/ftp', validator('json', usingSchema(ListingSchema)), usingEnv(ENV_VARS), async c => {
   const listing = c.req.valid('json');
   const env = c.get('env');
+  const reqId = c.get('reqId');
 
   const ftp = { url: env.FTP_URL, port: +env.FTP_PORT, user: env.FTP_USER, pass: env.FTP_PASS };
 
   try {
-    await uploadFTP(ftp, listing);
+    await uploadFTP(ftp, listing, reqId);
   } catch (e) {
-    console.error('Error while connecting', e);
-    return c.text('Error connecting to FTP', 500);
+    console.error(`[${reqId}]`, 'Error while connecting', e);
+    return c.json({ reqId, message: 'Error connecting to FTP' }, 500);
   }
 
   return c.text('', 200);
