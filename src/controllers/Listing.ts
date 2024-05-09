@@ -12,6 +12,7 @@ const ENV_VARS = ['FTP_URL', 'FTP_PORT', 'FTP_USER', 'FTP_PASS'] as const;
 interface State {
   Variables: {
     connPool: ConnPool;
+    reqId: string;
     env: Record<(typeof ENV_VARS)[number], string>;
   };
 }
@@ -33,6 +34,7 @@ listing.post('/', validator('json', usingSchema(ListingSchema)), async c => {
 listing.post('/ftp', validator('json', usingSchema(ListingSchema)), usingEnv(ENV_VARS), async c => {
   const listing = c.req.valid('json');
   const env = c.get('env');
+  const reqId = c.get('reqId');
 
   {
     using ftp = new FTPClient(env.FTP_URL, {
@@ -52,13 +54,13 @@ listing.post('/ftp', validator('json', usingSchema(ListingSchema)), usingEnv(ENV
     const fileName = `${sellerPhoneFile}_${sellerNameFile}.${extension}`;
     const imageData = decodeBase64(b64ImageData);
     
-    console.info(`Connecting to ${env.FTP_USER}@${env.FTP_URL}:${env.FTP_PORT}`);
+    console.log(`[${reqId}]`, `Connecting to ${env.FTP_USER}@${env.FTP_URL}:${env.FTP_PORT}`);
     try {  
       await ftp.connect();
     } catch (e) {
-      console.error('Error while connecting', e);  
+      console.error(`[${reqId}]`, 'Error while connecting', e);  
     }
-    console.info('Uploading', fileName);
+    console.log(`[${reqId}]`, 'Uploading', fileName);
     await ftp.upload(fileName, imageData);
   }
 
