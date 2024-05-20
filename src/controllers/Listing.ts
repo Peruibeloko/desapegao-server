@@ -26,15 +26,15 @@ listing.post('/', validator('json', usingSchema(ListingSchema)), async c => {
   const [connKey, conn] = await pool.getConnection(3);
   if (conn === null) return c.text('No database connections available, please wait and try again', 503);
 
-  try {
-    createListing(listing, conn, reqId);
-  } catch (e) {
-    pool.thanks(connKey);
-    console.error(`[${reqId}]`, 'Error creating listing', e.cause);
-    return c.json({ reqId, message: 'Error creating listing' }, 500);
-  }
+  const result = await createListing(listing, conn, reqId);
 
   pool.thanks(connKey);
+
+  if (result instanceof Error) {
+    console.error(`[${reqId}]`, result.message, '|', result.cause);
+    return c.json({ reqId, message: `Error creating listing: ${result.message}` }, 500);
+  }
+
   return c.text('', 200);
 });
 

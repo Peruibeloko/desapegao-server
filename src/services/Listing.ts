@@ -2,7 +2,8 @@ import { FTPClient } from 'ftp';
 import { decodeBase64 } from 'std/encoding/base64.ts';
 import { Listing } from '@/models/Listing.ts';
 import { createPix } from '@/clients/Payment.ts';
-import { isInCooldown, nq } from '@/clients/Q.ts';
+import { isInCooldown } from '@/clients/Q.ts';
+import { paymentCreated } from '@/clients/Pending.ts';
 
 interface FTPConnection {
   url: string;
@@ -11,8 +12,13 @@ interface FTPConnection {
   pass: string;
 }
 
+interface PixCodes {
+  qrCodeImage: string;
+  pixCode: string;
+}
+
 export async function uploadFTP({ url, port, user, pass }: FTPConnection, listing: Listing, reqId: string) {
-  using ftp = new FTPClient(url, {
+  const ftp = new FTPClient(url, {
     user,
     pass,
     port,
@@ -36,14 +42,24 @@ export async function uploadFTP({ url, port, user, pass }: FTPConnection, listin
   await ftp.upload(fileName, imageData);
 }
 
-export async function createListing(listing: Listing, conn: Deno.Kv, reqId: string) {
+export async function createListing(listing: Listing, conn: Deno.Kv, reqId: string): Promise<Result<PixCodes>> {
   console.log(`[${reqId}]`, `Checking cooldown`);
   const isAllowed = isInCooldown(listing.sellerPhone, conn);
-  if (!isAllowed) throw new Error('Sender in cooldown, please wait 24h', { cause: 'cooldown' });
+  if (!isAllowed) return new Error('sender in cooldown, please wait 24h', { cause: 'cooldown' });
 
   console.log(`[${reqId}]`, `Creating payment`);
-  await createPix(5, listing.sellerName, listing.sellerPhone);
+  const paymentResult = await createPix(5, listing.sellerName, listing.sellerPhone);
 
-  console.log(`[${reqId}]`, `Adding listing to the queue`);
-  await nq(listing, conn);
+  if (paymentResult instanceof Error) {
+    return paymentResult;
+  }
+
+  const paymentId = paymentResult.id;
+  const qrCodeImage = paymentResult.point_of_interaction.transaction_data.qr_code_base64;
+  const pixCode = paymentResult.point_of_interaction.transaction_data.qr_code;
+
+  console.log(`[${reqId}]`, `Payment ${paymentId} created, waiting for notification`);
+  paymentCreated(paymentId, listing, conn);
+
+  return { qrCodeImage, pixCode };
 }

@@ -3,9 +3,15 @@ interface PaymentResposne {
   date_created: string;
   date_approved: string;
   date_last_updated: string;
+  point_of_interaction: {
+    transaction_data: {
+      qr_code_base64: string;
+      qr_code: string;
+    };
+  };
 }
 
-export async function createPix(ammount: number, email: string, cpf: string) {
+export async function createPix(ammount: number, email: string, cpf: string): Promise<Result<PaymentResposne>> {
   const authKey = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
 
   const response = await fetch('https://api.mercadopago.com/v1/payments', {
@@ -33,6 +39,6 @@ export async function createPix(ammount: number, email: string, cpf: string) {
     })
   });
 
-  if (response.status !== 200) throw new Error('Payment not succesful', { cause: await response.json() });
+  if (response.status !== 200) return new Error('MercadoPago error', { cause: await response.json() });
   return (await response.json()) as PaymentResposne;
 }

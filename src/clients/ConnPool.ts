@@ -58,7 +58,7 @@ export class ConnPool {
       }
       await sleep(1000);
     }
-    return [null, null] as [key: null, conn: null];
+    throw new Error('No available connections');
   }
 
   public thanks(key: string) {

@@ -28,8 +28,6 @@ export async function nq(listing: Listing, conn: Deno.Kv) {
   await conn.set(['cooldown', listing.sellerPhone], true, {
     expireIn: ONE_DAY
   });
-
-  return true;
 }
 
 /**
