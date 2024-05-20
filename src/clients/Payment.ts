@@ -1,3 +1,10 @@
+interface PaymentResposne {
+  id: number;
+  date_created: string;
+  date_approved: string;
+  date_last_updated: string;
+}
+
 export async function createPix(ammount: number, email: string, cpf: string) {
   const authKey = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
 
@@ -25,4 +32,7 @@ export async function createPix(ammount: number, email: string, cpf: string) {
       transaction_amount: ammount
     })
   });
+
+  if (response.status !== 200) throw new Error('Payment not succesful', { cause: await response.json() });
+  return (await response.json()) as PaymentResposne;
 }

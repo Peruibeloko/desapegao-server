@@ -1,9 +1,8 @@
 import { ConnPool } from '@/clients/ConnPool.ts';
-import { nq } from '@/clients/Q.ts';
 import { usingEnv } from '@/middlewares/checkEnv.ts';
 import { usingSchema } from '@/middlewares/usingSchema.ts';
 import { ListingSchema } from '@/models/Listing.ts';
-import { uploadFTP } from '@/services/Listing.ts';
+import { createListing, uploadFTP } from '@/services/Listing.ts';
 
 import { Hono, validator } from 'hono/mod.ts';
 
@@ -21,14 +20,22 @@ const listing = new Hono<State>();
 
 listing.post('/', validator('json', usingSchema(ListingSchema)), async c => {
   const listing = c.req.valid('json');
+  const reqId = c.get('reqId');
   const pool = c.get('connPool');
+
   const [connKey, conn] = await pool.getConnection(3);
   if (conn === null) return c.text('No database connections available, please wait and try again', 503);
 
-  const success = await nq(listing, conn);
-  pool.thanks(connKey);
+  try {
+    createListing(listing, conn, reqId);
+  } catch (e) {
+    pool.thanks(connKey);
+    console.error(`[${reqId}]`, 'Error creating listing', e.cause);
+    return c.json({ reqId, message: 'Error creating listing' }, 500);
+  }
 
-  return c.text('', success ? 200 : 500);
+  pool.thanks(connKey);
+  return c.text('', 200);
 });
 
 listing.post('/ftp', validator('json', usingSchema(ListingSchema)), usingEnv(ENV_VARS), async c => {

@@ -1,6 +1,19 @@
 import { Listing } from '@/models/Listing.ts';
 
 /**
+ * Checks if specified seller is on cooldown
+ * @param sellerPhone The seller's phone number
+ * @param conn A resolved connection to Deno KV
+ * @returns If the seller is in cooldown
+ */
+export async function isInCooldown(sellerPhone: string, conn: Deno.Kv) {
+  const searchResult = await conn.get(['cooldown', sellerPhone]);
+
+  if (searchResult.value) return true;
+  return false;
+}
+
+/**
  * Enqueues a listing for later processing
  * @param listing The listing object
  * @param conn A resolved connection to Deno KV
@@ -10,12 +23,9 @@ export async function nq(listing: Listing, conn: Deno.Kv) {
   const ONE_DAY = 1000 * 60 * 60 * 24;
 
   const today = new Date().toISOString();
-  const searchResult = await conn.get(['blocklist', listing.sellerPhone]);
-
-  if (searchResult.value) return false;
 
   await conn.set(['listing', today], listing);
-  await conn.set(['blocklist', listing.sellerPhone], true, {
+  await conn.set(['cooldown', listing.sellerPhone], true, {
     expireIn: ONE_DAY
   });
 
