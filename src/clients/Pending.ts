@@ -1,14 +1,16 @@
 import { Listing } from '@/models/Listing.ts';
+import { Ok, Err } from '@fp-utils/result';
 
-export function paymentCreated(paymentId: number, listing: Listing, conn: Deno.Kv) {
-  conn.set(['payment_pending', paymentId], listing);
+export function paymentCreated(paymentId: number, listing: Listing) {
+  new Deno.Kv().set(['payment_pending', paymentId], listing);
 }
 
-export async function paymentReceived(paymentId: string, conn: Deno.Kv): Promise<Result<Listing>> {
+export async function paymentReceived(paymentId: string) {
+  const conn = new Deno.Kv();
   const listing = await conn.get(['payment_pending', paymentId]);
 
-  if (listing.value === null) return new Error(`No listing found for paymentId ${paymentId}`);
+  if (listing.value === null) return Err(`No listing found for paymentId ${paymentId}`);
 
   conn.delete(listing.key);
-  return listing.value as Listing;
+  return Ok(listing.value as Listing);
 }

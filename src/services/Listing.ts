@@ -4,6 +4,7 @@ import { Listing } from '@/models/Listing.ts';
 import { createPix } from '@/clients/Payment.ts';
 import { isInCooldown } from '@/clients/Q.ts';
 import { paymentCreated } from '@/clients/Pending.ts';
+import { Err, Ok } from '@fp-utils/result';
 
 interface FTPConnection {
   url: string;
@@ -36,30 +37,47 @@ export async function uploadFTP({ url, port, user, pass }: FTPConnection, listin
   const imageData = decodeBase64(b64ImageData);
 
   console.log(`[${reqId}]`, `Connecting to ${user}@${url}:${port}`);
-  await ftp.connect();
+  const connectResult = await ftp
+    .connect()
+    .then(() => Ok())
+    .catch((e: Error) => Err(e.message));
+
+  if (connectResult.isErr()) return connectResult;
 
   console.log(`[${reqId}]`, 'Uploading', fileName);
-  await ftp.upload(fileName, imageData);
+  const uploadResult = await ftp
+    .upload(fileName, imageData)
+    .then(() => Ok())
+    .catch((e: Error) => Err(e.message));
+
+  if (uploadResult.isErr()) return uploadResult;
+
+  await ftp.close();
+  return Ok();
 }
 
-export async function createListing(listing: Listing, conn: Deno.Kv, reqId: string): Promise<Result<PixCodes>> {
+export async function createListing(listing: Listing, reqId: string) {
   console.log(`[${reqId}]`, `Checking cooldown`);
-  const isAllowed = isInCooldown(listing.sellerPhone, conn);
-  if (!isAllowed) return new Error('sender in cooldown, please wait 24h', { cause: 'cooldown' });
+  const isAllowed = isInCooldown(listing.sellerPhone);
+  if (!isAllowed) return Err('Sender in cooldown, please wait 24h');
 
   console.log(`[${reqId}]`, `Creating payment`);
   const paymentResult = await createPix(5, listing.sellerName, listing.sellerPhone);
 
-  if (paymentResult instanceof Error) {
-    return paymentResult;
+  if (paymentResult.isErr()) {
+    const [err, data] = paymentResult.unwrapErr();
+    console.error(`[${reqId}]`, data);
+    return Err(err);
   }
 
-  const paymentId = paymentResult.id;
-  const qrCodeImage = paymentResult.point_of_interaction.transaction_data.qr_code_base64;
-  const pixCode = paymentResult.point_of_interaction.transaction_data.qr_code;
+  const payment = paymentResult.unwrap();
+
+  const paymentId = payment.id;
+  const qrCodeImage = payment.point_of_interaction.transaction_data.qr_code_base64;
+  const pixCode = payment.point_of_interaction.transaction_data.qr_code;
 
   console.log(`[${reqId}]`, `Payment ${paymentId} created, waiting for notification`);
-  paymentCreated(paymentId, listing, conn);
+  paymentCreated(paymentId, listing);
 
-  return { qrCodeImage, pixCode };
+  return Ok({ qrCodeImage, pixCode });
 }

@@ -2,7 +2,13 @@
   "version": "3",
   "packages": {
     "specifiers": {
+      "jsr:@fp-utils/result@^0.13.1": "jsr:@fp-utils/result@0.13.1",
       "npm:@types/node": "npm:@types/node@18.16.19"
+    },
+    "jsr": {
+      "@fp-utils/result@0.13.1": {
+        "integrity": "e9a52a4fe30299211737fedefdd4e2a923fab0d69090633d01165da81a339d04"
+      }
     },
     "npm": {
       "@types/node@18.16.19": {
@@ -223,5 +229,10 @@
     "https://deno.land/x/zod@v3.22.4/index.ts": "d27aabd973613985574bc31f39e45cb5d856aa122ef094a9f38a463b8ef1a268",
     "https://deno.land/x/zod@v3.22.4/locales/en.ts": "a7a25cd23563ccb5e0eed214d9b31846305ddbcdb9c5c8f508b108943366ab4c",
     "https://deno.land/x/zod@v3.22.4/types.ts": "724185522fafe43ee56a52333958764c8c8cd6ad4effa27b42651df873fc151e"
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@fp-utils/result@^0.13.1"
+    ]
   }
 }

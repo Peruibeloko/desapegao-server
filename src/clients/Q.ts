@@ -6,8 +6,8 @@ import { Listing } from '@/models/Listing.ts';
  * @param conn A resolved connection to Deno KV
  * @returns If the seller is in cooldown
  */
-export async function isInCooldown(sellerPhone: string, conn: Deno.Kv) {
-  const searchResult = await conn.get(['cooldown', sellerPhone]);
+export async function isInCooldown(sellerPhone: string) {
+  const searchResult = await new Deno.Kv().get(['cooldown', sellerPhone]);
 
   if (searchResult.value) return true;
   return false;
@@ -19,7 +19,8 @@ export async function isInCooldown(sellerPhone: string, conn: Deno.Kv) {
  * @param conn A resolved connection to Deno KV
  * @returns If the operation was successful
  */
-export async function nq(listing: Listing, conn: Deno.Kv) {
+export async function nq(listing: Listing) {
+  const conn = new Deno.Kv();
   const ONE_DAY = 1000 * 60 * 60 * 24;
 
   const today = new Date().toISOString();
@@ -34,7 +35,8 @@ export async function nq(listing: Listing, conn: Deno.Kv) {
  * Dequeues a listing for processing
  * @returns The listing object
  */
-export async function dq(conn: Deno.Kv) {
+export async function dq() {
+  const conn = new Deno.Kv();
   const iter = conn.list({ prefix: ['listing'] }, { limit: 1 });
   const listing = await iter.next().then(el => el.value);
 

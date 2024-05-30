@@ -1,4 +1,6 @@
-interface PaymentResposne {
+import { Err, Ok } from '@fp-utils/result';
+
+interface PaymentResponse {
   id: number;
   date_created: string;
   date_approved: string;
@@ -11,7 +13,7 @@ interface PaymentResposne {
   };
 }
 
-export async function createPix(ammount: number, email: string, cpf: string): Promise<Result<PaymentResposne>> {
+export async function createPix(ammount: number, email: string, cpf: string) {
   const authKey = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
 
   const response = await fetch('https://api.mercadopago.com/v1/payments', {
@@ -39,6 +41,7 @@ export async function createPix(ammount: number, email: string, cpf: string): Pr
     })
   });
 
-  if (response.status !== 200) return new Error('MercadoPago error', { cause: await response.json() });
-  return (await response.json()) as PaymentResposne;
+  const data = await response.json();
+  if (response.status !== 200) return Err(['MercadoPago error', data] as [string, unknown]);
+  return Ok(data as PaymentResponse);
 }
