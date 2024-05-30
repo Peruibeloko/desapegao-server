@@ -2,17 +2,14 @@ import { Hono } from 'hono/mod.ts';
 import { cors } from 'hono/middleware.ts';
 import listingRouter from '@/controllers/Listing.ts';
 import callbackRouter from '@/controllers/Callback.ts';
-import { ConnPool } from '@/clients/ConnPool.ts';
 
 interface State {
   Variables: {
-    connPool: ConnPool;
     reqId: string;
   };
 }
 
 const app = new Hono<State>();
-const dbPool = await ConnPool.init(10);
 
 app.use('*', cors());
 
@@ -20,11 +17,6 @@ app.use('*', async (c, next) => {
   const reqId = crypto.randomUUID();
   c.set('reqId', reqId);
   console.log(`[${reqId}]`, c.req.method, c.req.path, await c.req.json());
-  await next();
-});
-
-app.use(async (c, next) => {
-  c.set('connPool', dbPool);
   await next();
 });
 
