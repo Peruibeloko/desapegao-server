@@ -7,7 +7,9 @@ import { Listing } from '@/models/Listing.ts';
  * @returns If the seller is in cooldown
  */
 export async function isInCooldown(sellerPhone: string) {
-  const searchResult = await new Deno.Kv().get(['cooldown', sellerPhone]);
+  const conn = new Deno.Kv();
+  const searchResult = await conn.get(['cooldown', sellerPhone]);
+  conn.close();
 
   if (searchResult.value) return true;
   return false;
@@ -29,6 +31,7 @@ export async function nq(listing: Listing) {
   await conn.set(['cooldown', listing.sellerPhone], true, {
     expireIn: ONE_DAY
   });
+  conn.close();
 }
 
 /**
@@ -40,8 +43,12 @@ export async function dq() {
   const iter = conn.list({ prefix: ['listing'] }, { limit: 1 });
   const listing = await iter.next().then(el => el.value);
 
-  if (!listing) return null;
+  if (!listing) {
+    conn.close();
+    return null;
+  }
 
   conn.delete(listing.key);
+  conn.close();
   return listing.value as Listing;
 }

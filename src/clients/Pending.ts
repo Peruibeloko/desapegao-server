@@ -9,8 +9,12 @@ export async function paymentReceived(paymentId: string) {
   const conn = new Deno.Kv();
   const listing = await conn.get(['payment_pending', paymentId]);
 
-  if (listing.value === null) return Err(`No listing found for paymentId ${paymentId}`);
+  if (listing.value === null) {
+    conn.close();
+    return Err(`No listing found for paymentId ${paymentId}`);
+  }
 
   conn.delete(listing.key);
+  conn.close();
   return Ok(listing.value as Listing);
 }
