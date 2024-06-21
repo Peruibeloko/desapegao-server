@@ -33,7 +33,6 @@ export async function uploadFTP({ url, port, user, pass }: FTPConnection, listin
   const sellerNameFile = listing.sellerName.toLowerCase();
   const sellerPhoneFile = listing.sellerPhone.replaceAll(/^\D$/g, '');
 
-  const fileName = `${sellerPhoneFile}_${sellerNameFile}.${extension}`;
   const imageData = decodeBase64(b64ImageData);
 
   console.log(`[${reqId}]`, `Connecting to ${user}@${url}:${port}`);
@@ -43,6 +42,10 @@ export async function uploadFTP({ url, port, user, pass }: FTPConnection, listin
     .catch((e: Error) => Err(e.message));
 
   if (connectResult.isErr()) return connectResult;
+
+  const files = await ftp.list()
+  const count = files.filter((file) => new RegExp(`^${sellerPhoneFile}_${sellerNameFile}_`).test(file)).length
+  const fileName = `${sellerPhoneFile}_${sellerNameFile}_${count + 1}.${extension}`;
 
   console.log(`[${reqId}]`, 'Uploading', fileName);
   const uploadResult = await ftp
