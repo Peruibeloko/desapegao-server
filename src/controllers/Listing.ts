@@ -51,16 +51,22 @@ listing.post('/ftp', validator('json', usingSchema(ListingSchema)), usingEnv(ENV
     const sellerNameFile = listing.sellerName.toLowerCase()
     const sellerPhoneFile = listing.sellerPhone.replaceAll(/^\D$/g, '')
     
-    const fileName = `${sellerPhoneFile}_${sellerNameFile}.${extension}`;
     const imageData = decodeBase64(b64ImageData);
     
     console.log(`[${reqId}]`, `Connecting to ${env.FTP_USER}@${env.FTP_URL}:${env.FTP_PORT}`);
+    
     try {  
       await ftp.connect();
     } catch (e) {
       console.error(`[${reqId}]`, 'Error while connecting', e);  
     }
+    
+    const files = await ftp.list()
+    const count = files.filter((file) => new RegExp(`^${sellerPhoneFile}_${sellerNameFile}_`).test(file)).length
+    const fileName = `${sellerPhoneFile}_${sellerNameFile}_${count + 1}.${extension}`;
+    
     console.log(`[${reqId}]`, 'Uploading', fileName);
+    
     await ftp.upload(fileName, imageData);
   }
 
