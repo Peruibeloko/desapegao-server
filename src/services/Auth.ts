@@ -1,28 +1,15 @@
 import * as jwt from '@cross/jwt';
 import * as otp from '@hectorm/otpauth';
 
-function unthrow<A, R>(fn: (fnArgs: A) => R) {
-  type Success = { ok: true; data: ReturnType<typeof fn> };
-  type Failiure = { ok: false; error: Error };
-
-  return (...args: Parameters<typeof fn>): Success | Failiure => {
-    try {
-      const result = fn(...args);
-      return { ok: true, data: result };
-    } catch (e) {
-      return { ok: false, error: e };
-    }
-  };
-}
-
 export function parseAuthHeader(header: string) {
   const [_, contents] = header.split(' ');
 
-  const payload = unthrow(jwt.unsafeParseJWT)(contents);
-
-  if (!payload.ok) return null;
-
-  return payload.data;
+  try {
+    const { aud } = jwt.unsafeParseJWT(contents);
+    return { token: contents, email: aud as string };
+  } catch {
+    return null;
+  }
 }
 
 export async function issueJWT(email: string, secret: string) {
